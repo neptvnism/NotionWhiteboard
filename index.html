@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Whiteboard</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Arial+Rounded+MT+Bold&display=swap');
+        
         body, html {
             margin: 0;
             padding: 0;
@@ -14,25 +16,48 @@
             justify-content: center;
             align-items: center;
             background-color: #f0f0f0;
+            font-family: 'Arial Rounded MT Bold', sans-serif;
         }
         #controls {
             margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        button, select {
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
         }
         canvas {
-            border: 1px solid #000;
+            border: 2px solid #000;
+            border-radius: 10px;
             background-color: #fff;
         }
-        button {
-            margin: 0 5px;
+        button:focus, select:focus {
+            outline: none;
         }
     </style>
 </head>
 <body>
     <div id="controls">
-        <button onclick="changeColor('black')">Black</button>
-        <button onclick="changeColor('red')">Red</button>
-        <button onclick="changeColor('green')">Green</button>
-        <button onclick="changeColor('blue')">Blue</button>
+        <button onclick="changeColor('black')" style="background-color: black; color: white;">Black</button>
+        <button onclick="changeColor('red')" style="background-color: red;">Red</button>
+        <button onclick="changeColor('green')" style="background-color: green;">Green</button>
+        <button onclick="changeColor('blue')" style="background-color: blue;">Blue</button>
+        <select id="size" onchange="changeSize(this.value)">
+            <option value="2">Size: 2px</option>
+            <option value="5" selected>Size: 5px</option>
+            <option value="10">Size: 10px</option>
+            <option value="15">Size: 15px</option>
+        </select>
+        <select id="opacity" onchange="changeOpacity(this.value)">
+            <option value="1" selected>Opacity: 100%</option>
+            <option value="0.75">Opacity: 75%</option>
+            <option value="0.5">Opacity: 50%</option>
+            <option value="0.25">Opacity: 25%</option>
+        </select>
         <button onclick="clearCanvas()">Clear</button>
     </div>
     <canvas id="whiteboard" width="800" height="600"></canvas>
@@ -41,6 +66,8 @@
         const ctx = canvas.getContext('2d');
         let drawing = false;
         let currentColor = 'black';
+        let currentSize = 5;
+        let currentOpacity = 1;
 
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mouseup', stopDrawing);
@@ -49,20 +76,21 @@
 
         function startDrawing(event) {
             drawing = true;
-            draw(event); 
+            draw(event);  
         }
 
         function stopDrawing() {
             drawing = false;
-            ctx.beginPath();  
+            ctx.beginPath(); 
         }
 
         function draw(event) {
             if (!drawing) return;
 
-            ctx.lineWidth = 5;
+            ctx.lineWidth = currentSize;
             ctx.lineCap = 'round';
             ctx.strokeStyle = currentColor;
+            ctx.globalAlpha = currentOpacity;
 
             ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
             ctx.stroke();
@@ -72,6 +100,14 @@
 
         function changeColor(color) {
             currentColor = color;
+        }
+
+        function changeSize(size) {
+            currentSize = size;
+        }
+
+        function changeOpacity(opacity) {
+            currentOpacity = opacity;
         }
 
         function clearCanvas() {
