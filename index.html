@@ -15,8 +15,13 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: #f0f0f0;
+            background-color: #ffffff; /* Light mode background */
             font-family: 'Arial Rounded MT Bold', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.dark-mode {
+            background-color: #2b2b2b; /* Dark mode background */
+            color: #ffffff; /* Dark mode text color */
         }
         #controls {
             margin-bottom: 10px;
@@ -29,11 +34,20 @@
             border-radius: 10px;
             cursor: pointer;
             font-size: 14px;
+            background-color: #e0e0e0; /* Pastel button color */
+            color: #333;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #d0d0d0;
         }
         canvas {
             border: 2px solid #000;
             border-radius: 10px;
             background-color: #fff;
+        }
+        body.dark-mode canvas {
+            background-color: #444; /* Dark mode canvas */
         }
         button:focus, select:focus {
             outline: none;
@@ -42,10 +56,13 @@
 </head>
 <body>
     <div id="controls">
-        <button onclick="changeColor('black')" style="background-color: black; color: white;">Black</button>
-        <button onclick="changeColor('red')" style="background-color: red;">Red</button>
-        <button onclick="changeColor('green')" style="background-color: green;">Green</button>
-        <button onclick="changeColor('blue')" style="background-color: blue;">Blue</button>
+        <button onclick="changeColor('#ffb3b3')" style="background-color: #ffb3b3;">Red</button>
+        <button onclick="changeColor('#ffccb3')" style="background-color: #ffccb3;">Orange</button>
+        <button onclick="changeColor('#ffffb3')" style="background-color: #ffffb3;">Yellow</button>
+        <button onclick="changeColor('#b3ffb3')" style="background-color: #b3ffb3;">Green</button>
+        <button onclick="changeColor('#b3d1ff')" style="background-color: #b3d1ff;">Blue</button>
+        <button onclick="changeColor('#d1b3ff')" style="background-color: #d1b3ff;">Purple</button>
+        <button onclick="changeColor('#ffb3e6')" style="background-color: #ffb3e6;">Pink</button>
         <select id="size" onchange="changeSize(this.value)">
             <option value="2">Size: 2px</option>
             <option value="5" selected>Size: 5px</option>
@@ -58,6 +75,8 @@
             <option value="0.5">Opacity: 50%</option>
             <option value="0.25">Opacity: 25%</option>
         </select>
+        <button onclick="toggleShadow()">Toggle Shadow</button>
+        <button onclick="toggleMode()">Toggle Dark/Light Mode</button>
         <button onclick="clearCanvas()">Clear</button>
     </div>
     <canvas id="whiteboard" width="800" height="600"></canvas>
@@ -65,9 +84,12 @@
         const canvas = document.getElementById('whiteboard');
         const ctx = canvas.getContext('2d');
         let drawing = false;
-        let currentColor = 'black';
+        let currentColor = '#000000';
         let currentSize = 5;
         let currentOpacity = 1;
+        let shadowEnabled = true;
+        let lastX = 0;
+        let lastY = 0;
 
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mouseup', stopDrawing);
@@ -76,12 +98,12 @@
 
         function startDrawing(event) {
             drawing = true;
-            draw(event);  
+            [lastX, lastY] = [event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop];
         }
 
         function stopDrawing() {
             drawing = false;
-            ctx.beginPath(); 
+            ctx.beginPath();
         }
 
         function draw(event) {
@@ -92,10 +114,22 @@
             ctx.strokeStyle = currentColor;
             ctx.globalAlpha = currentOpacity;
 
-            ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
-            ctx.stroke();
+            if (shadowEnabled) {
+                ctx.shadowColor = '#888';  // Shadow color
+                ctx.shadowBlur = 5;        // Blur of shadow
+                ctx.shadowOffsetX = 2;     // X offset of shadow
+                ctx.shadowOffsetY = 2;     // Y offset of shadow
+            } else {
+                ctx.shadowColor = 'transparent';  // No shadow
+            }
+
             ctx.beginPath();
-            ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+            ctx.moveTo(lastX, lastY);
+            const x = event.clientX - canvas.offsetLeft;
+            const y = event.clientY - canvas.offsetTop;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            [lastX, lastY] = [x, y];
         }
 
         function changeColor(color) {
@@ -108,6 +142,14 @@
 
         function changeOpacity(opacity) {
             currentOpacity = opacity;
+        }
+
+        function toggleShadow() {
+            shadowEnabled = !shadowEnabled;
+        }
+
+        function toggleMode() {
+            document.body.classList.toggle('dark-mode');
         }
 
         function clearCanvas() {
